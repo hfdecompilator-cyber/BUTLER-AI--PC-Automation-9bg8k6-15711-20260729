@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Circle, Line, Polygon } from 'react-native-svg';
 import { D, FONT, alpha, shadow } from '@/constants/design';
 import { TabErrorBoundary } from '@/components/ui/TabErrorBoundary';
+import { TabPageHeader } from '@/components/ui/TabPageHeader';
 
 const SW = Math.max(320, Dimensions.get('window').width);
 
@@ -74,63 +75,27 @@ function HexLogo({ size = 44 }: { size?: number }) {
 
 // ── STICKY HEADER ──────────────────────────────────────────────────
 function NexusHeader({ safeTop, isOnline }: { safeTop: number; isOnline: boolean }) {
-  const cc = isOnline ? D.green : D.amber;
   return (
-    <View style={[hdr.root, { paddingTop: safeTop + 8 }]}>
-      {/* Left: logo + wordmark */}
-      <View style={hdr.left}>
-        <HexLogo />
-        <View>
-          <Text style={hdr.wordmark}>NEXUS</Text>
-          <Text style={hdr.eyebrow}>COMMAND · V8.0</Text>
-        </View>
-      </View>
-
-      {/* Right: status + buttons */}
-      <View style={hdr.right}>
-        <View style={[hdr.pill, { borderColor: alpha(cc, 0.35), backgroundColor: alpha(cc, 0.1) }]}>
-          <PulseDot color={cc} />
-          <Text style={[hdr.pillTxt, { color: cc }]}>
-            {isOnline ? 'ONLINE' : 'OFFLINE'}
-          </Text>
-        </View>
-        <TouchableOpacity style={hdr.iconBtn} activeOpacity={0.7}>
-          <MaterialIcons name="notifications-none" size={16} color={D.textMid} />
-        </TouchableOpacity>
-        <TouchableOpacity style={hdr.iconBtn} activeOpacity={0.7}>
-          <MaterialIcons name="search" size={16} color={D.textMid} />
-        </TouchableOpacity>
-      </View>
-    </View>
+    <TabPageHeader
+      safeTop={safeTop}
+      accent="#00E5FF"
+      icon="home-automation"
+      iconLib="community"
+      eyebrow="COMMAND CENTER · V8.0"
+      title={
+        <>
+          <Text style={{ color: '#00E5FF' }}>{'{'}</Text>
+          <Text style={{ color: '#FFFFFF' }}>NEXUS</Text>
+          <Text style={{ color: '#00FF88' }}>_CORE</Text>
+          <Text style={{ color: '#00E5FF' }}>{'}'}</Text>
+        </>
+      }
+      subtitle="home automation · PC command base"
+      isConn={isOnline}
+      connLabel="PC ONLINE"
+    />
   );
 }
-
-const hdr = StyleSheet.create({
-  root: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    backgroundColor: alpha(D.bg, 0.97),
-  },
-  left:     { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  wordmark: { fontSize: 20, fontWeight: '900', color: D.text, letterSpacing: 4, lineHeight: 24 },
-  eyebrow:  { fontFamily: FONT.mono, fontSize: 9, color: D.textDim, letterSpacing: 4, marginTop: 2 },
-  right:    { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  pill: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    borderWidth: 1, borderRadius: 999,
-    paddingHorizontal: 10, paddingVertical: 6,
-  },
-  pillTxt: { fontFamily: FONT.mono, fontSize: 9, fontWeight: '700', letterSpacing: 1 },
-  iconBtn: {
-    width: 36, height: 36, borderRadius: 9,
-    borderWidth: 1, borderColor: D.border,
-    backgroundColor: D.surface2,
-    alignItems: 'center', justifyContent: 'center',
-  },
-});
 
 // ── TICKER BAR ────────────────────────────────────────────────────
 const TICKER_ITEMS = [

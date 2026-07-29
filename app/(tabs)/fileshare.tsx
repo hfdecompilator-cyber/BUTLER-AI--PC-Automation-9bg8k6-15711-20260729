@@ -21,6 +21,7 @@ import { COLOR, FONT, glow, SHADOW } from '@/constants/tokens';
 import { quickScan, diagnosePeer, FoundServer, ScanProgress } from '@/services/lanScanner';
 import { autoErrorLogger } from '@/services/autoErrorLogger';
 import { useCosmetic } from '@/contexts/CosmeticContext';
+import { TabPageHeader, TabPageSubTab } from '@/components/ui/TabPageHeader';
 
 const MONO: any = FONT.mono;
 const SW = Math.max(320, Dimensions.get('window').width);
@@ -79,70 +80,32 @@ const TABS_CFG = [
 type TabKey = typeof TABS_CFG[number]['key'];
 
 function NetOpsHeader({ safeTop, isConn, activeTab, onTabChange }: { safeTop: number; isConn: boolean; activeTab: TabKey; onTabChange: (t: TabKey) => void }) {
-  const scanA = useRef(new Animated.Value(-200)).current;
-  const m = useRef(true);
-  useEffect(() => {
-    m.current = true;
-    const loop = Animated.loop(Animated.sequence([
-      Animated.timing(scanA, { toValue: SW + 200, duration: 3200, useNativeDriver: false }),
-      Animated.timing(scanA, { toValue: -200, duration: 0, useNativeDriver: false }),
-      Animated.delay(5000),
-    ]));
-    loop.start();
-    return () => { m.current = false; loop.stop(); };
-  }, []);
-  const cc = isConn ? COLOR.green : COLOR.amber;
+  const subTabs: TabPageSubTab[] = TABS_CFG.map(t => ({
+    id: t.key, label: t.label, icon: t.icon, lib: 'material' as const, color: t.color,
+  }));
   return (
-    <View style={[noh.root, { paddingTop: safeTop }]}>
-      <Animated.View pointerEvents="none" style={[noh.scan, { transform: [{ translateX: scanA }] }]} />
-      <View style={{ height: 3, flexDirection: 'row' }}>
-        {[COLOR.teal, COLOR.cyan, COLOR.amber, COLOR.green, COLOR.magenta].map((c, i) => <View key={i} style={{ flex: 1, backgroundColor: c }} />)}
-      </View>
-      <View style={noh.row}>
-        <View style={[noh.orbOuter, { borderColor: COLOR.teal + '60', backgroundColor: glow(COLOR.teal, 8) }]}>
-          <MaterialCommunityIcons name="radar" size={22} color={COLOR.teal} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={noh.eyebrow}>NETWORK OPS CENTER</Text>
-          <Text style={noh.brand}>
-            <Text style={{ color: COLOR.teal }}>NET</Text>
-            <Text style={{ color: '#FFF' }}> OPS</Text>
-          </Text>
-          <Text style={noh.sub}>LAN · ports · ping · clipboard bridge</Text>
-        </View>
-        <View style={[noh.connPill, { borderColor: cc + '55', backgroundColor: cc + '0A' }]}>
-          <PulseDot color={cc} size={5} />
-          <Text style={[noh.connTxt, { color: cc }]}>{isConn ? 'ONLINE' : 'LOCAL'}</Text>
-        </View>
-      </View>
-      <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: COLOR.teal + '18' }}>
-        {TABS_CFG.map(tab => {
-          const isActive = tab.key === activeTab;
-          return (
-            <TouchableOpacity key={tab.key} onPress={() => { haptics.selection(); onTabChange(tab.key); }} activeOpacity={0.8}
-              style={[noh.tab, isActive && { backgroundColor: glow(tab.color, 10), borderBottomColor: tab.color }]}>
-              <MaterialIcons name={tab.icon as any} size={12} color={isActive ? tab.color : COLOR.dim} />
-              <Text style={[noh.tabTxt, { color: isActive ? tab.color : COLOR.dim }]}>{tab.label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
+    <TabPageHeader
+      safeTop={safeTop}
+      accent={COLOR.teal}
+      icon="radar"
+      iconLib="community"
+      eyebrow="NETWORK OPS CENTER"
+      title={
+        <>
+          <Text style={{ color: COLOR.teal }}>NET</Text>
+          <Text style={{ color: '#FFF' }}> OPS</Text>
+        </>
+      }
+      subtitle="LAN · ports · ping · clipboard bridge"
+      isConn={isConn}
+      connLabel="ONLINE"
+      offLabel="LOCAL"
+      subTabs={subTabs}
+      activeSubTab={activeTab}
+      onSubTabChange={id => { haptics.selection(); onTabChange(id as TabKey); }}
+    />
   );
 }
-const noh = StyleSheet.create({
-  root:     { backgroundColor: '#06080D', overflow: 'hidden' },
-  scan:     { position: 'absolute', top: 0, bottom: 0, width: 120, backgroundColor: 'rgba(16,217,160,0.025)', zIndex: 0 },
-  row:      { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: PAD, paddingTop: 12, paddingBottom: 10, zIndex: 1 },
-  orbOuter: { width: 52, height: 52, borderRadius: 26, borderWidth: 2, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  eyebrow:  { fontFamily: MONO, fontSize: 7.5, fontWeight: '700', color: COLOR.teal + '80', letterSpacing: 2, marginBottom: 2 },
-  brand:    { fontFamily: MONO, fontSize: 20, fontWeight: '900', letterSpacing: 1 },
-  sub:      { fontFamily: MONO, fontSize: 9.5, color: COLOR.mid, marginTop: 2 },
-  connPill: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1.5, borderRadius: 10, paddingHorizontal: 9, paddingVertical: 6, flexShrink: 0 },
-  connTxt:  { fontFamily: MONO, fontSize: 9, fontWeight: '900', letterSpacing: 0.8 },
-  tab:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 10, borderBottomWidth: 3, borderBottomColor: 'transparent' },
-  tabTxt:   { fontFamily: MONO, fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
-});
 
 // ─── STAT CELL ─────────────────────────────────────────────────────
 function StatCell({ icon, label, value, color }: { icon: string; label: string; value: string; color: string }) {

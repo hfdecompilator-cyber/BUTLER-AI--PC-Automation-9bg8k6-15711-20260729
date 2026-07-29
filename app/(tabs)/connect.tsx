@@ -22,6 +22,7 @@ import {
   DEFAULT_CONFIG, buildBaseUrl, loadConfig, pingServer, saveConfig,
   type ServerConfig,
 } from '@/services/connection';
+import { TabPageHeader, ClockSlot } from '@/components/ui/TabPageHeader';
 
 const MONO: any = Platform.OS === 'ios' ? 'Menlo-Bold' : 'monospace';
 const SW = Math.max(320, Dimensions.get('window').width);
@@ -302,67 +303,32 @@ function NexusField({ label, icon, hint, ...rest }: { label:string; icon:string;
 // ── HEADER ───────────────────────────────────────────────────────
 function PairHeader({ safeTop, status }: { safeTop: number; status: ConnStatus }) {
   const connCol = status === 'ok' ? C.green : status === 'fail' ? C.red : C.cyan;
-  const shimA = useRef(new Animated.Value(-SW)).current;
-  const [time, setTime] = useState('');
-
-  useEffect(() => {
-    const upd = () => {
-      const n = new Date();
-      setTime(`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`);
-    };
-    upd(); const t = setInterval(upd, 1000); return () => clearInterval(t);
-  }, []);
-
-  useEffect(() => {
-    const loop = Animated.loop(Animated.sequence([
-      Animated.timing(shimA, { toValue: SW*1.5, duration:2200, useNativeDriver:true }),
-      Animated.timing(shimA, { toValue: -SW,    duration:0,    useNativeDriver:true }),
-      Animated.delay(8000),
-    ]));
-    loop.start(); return () => loop.stop();
-  }, []);
-
   return (
-    <View style={[styles.hdr_root, { paddingTop: safeTop }]}>
-      <View style={{ height:2.5, backgroundColor:C.cyan }} />
-      <Animated.View pointerEvents="none" style={[styles.hdr_shimmer, { transform:[{ translateX: shimA }] }]} />
-      <View style={{ flexDirection:'row', alignItems:'flex-start', gap:12, paddingHorizontal:PAD, paddingTop:13, paddingBottom:13, zIndex:1 }}>
-        <View style={{ flex:1, gap:5 }}>
-          <Text style={{ fontFamily:MONO, fontSize:7.5, fontWeight:'700', color:C.cyan+'55', letterSpacing:2 }}>SERVER SETUP · PAIRING · AUTOMATION</Text>
-          <View style={{ flexDirection:'row', alignItems:'center', gap:10 }}>
-            <View style={{ width:38, height:38, borderRadius:11, borderWidth:1.5, alignItems:'center', justifyContent:'center',
-              borderColor:C.cyan+'55', backgroundColor:C.cyan+'10' }}>
-              <MaterialCommunityIcons name="server-network" size={20} color={C.cyan} />
-            </View>
-            <Text style={{ fontSize:26, fontWeight:'900', color:'#FFF' }}>PAIR <Text style={{ color:C.cyan }}>PC</Text></Text>
-          </View>
-          <View style={{ flexDirection:'row', gap:7, marginTop:2 }}>
-            <View style={{ flexDirection:'row', alignItems:'center', gap:5, borderWidth:1, borderRadius:20,
-              paddingHorizontal:9, paddingVertical:4, borderColor:connCol+'60', backgroundColor:connCol+'0D' }}>
-              <PulseDot color={connCol} size={5} />
-              <Text style={{ fontFamily:MONO, fontSize:8.5, fontWeight:'900', letterSpacing:0.3, color:connCol }}>
-                {status==='ok'?'CONNECTED':'OFFLINE'}
-              </Text>
-            </View>
-            <View style={{ flexDirection:'row', alignItems:'center', gap:5, borderWidth:1, borderRadius:20,
-              paddingHorizontal:9, paddingVertical:4, borderColor:C.green+'40', backgroundColor:C.green+'08' }}>
-              <MaterialCommunityIcons name="shield-check" size={9} color={C.green} />
-              <Text style={{ fontFamily:MONO, fontSize:8.5, fontWeight:'900', letterSpacing:0.3, color:C.green }}>ZERO CLOUD</Text>
-            </View>
-          </View>
+    <TabPageHeader
+      safeTop={safeTop}
+      accent={C.cyan}
+      icon="server-network"
+      iconLib="community"
+      eyebrow="SERVER SETUP · PAIRING · AUTOMATION"
+      title={
+        <>
+          <Text style={{ color: '#FFF' }}>PAIR </Text>
+          <Text style={{ color: C.cyan }}>PC</Text>
+        </>
+      }
+      subtitle="LAN · local · zero cloud · AES-256"
+      showConn={true}
+      isConn={status === 'ok'}
+      connLabel="CONNECTED"
+      extraPills={
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 20,
+          paddingHorizontal: 9, paddingVertical: 4, borderColor: C.teal + '55', backgroundColor: C.teal + '0A' }}>
+          <MaterialCommunityIcons name="lan" size={9} color={C.teal} />
+          <Text style={{ fontFamily: MONO, fontSize: 8.5, fontWeight: '900', color: C.teal }}>ZERO CLOUD</Text>
         </View>
-        <View style={{ alignItems:'flex-end', gap:4 }}>
-          <Text style={{ fontFamily:MONO, fontSize:24, fontWeight:'900', color:'#C8E4F0', letterSpacing:1 }}>{time}</Text>
-          <Text style={{ fontFamily:MONO, fontSize:8.5, color:'#4A7090', letterSpacing:1, fontWeight:'700' }}>LAN · LOCAL</Text>
-        </View>
-      </View>
-      {/* Circuit trace */}
-      <View style={{ height:2, flexDirection:'row' }}>
-        {[{f:3,c:C.cyan+'18'},{w:12,c:C.cyan},{f:2,c:C.green+'12'},{w:6,c:C.green},{f:5,c:C.cyan+'08'},{w:8,c:C.teal}].map((seg,i)=>(
-          <View key={i} style={[{backgroundColor:seg.c},'f' in seg?{flex:seg.f as number}:{width:seg.w as number}]} />
-        ))}
-      </View>
-    </View>
+      }
+      rightSlot={<ClockSlot accent={C.cyan} subLabel="LAN · LOCAL" />}
+    />
   );
 }
 

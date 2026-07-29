@@ -21,6 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { TabErrorBoundary } from '@/components/ui/TabErrorBoundary';
 import { haptics } from '@/services/haptics';
+import { TabPageHeader } from '@/components/ui/TabPageHeader';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -203,75 +204,44 @@ const cbl = StyleSheet.create({
 // PAGE HEADER
 // ═══════════════════════════════════════════════════════════════
 function DlHeader({ safeTop }: { safeTop: number }) {
-  const shimA = useRef(new Animated.Value(-SW)).current;
-  useEffect(() => {
-    const loop = Animated.loop(Animated.sequence([
-      Animated.timing(shimA, { toValue: SW * 1.6, duration: 2800, useNativeDriver: true }),
-      Animated.timing(shimA, { toValue: -SW,       duration: 0,    useNativeDriver: true }),
-      Animated.delay(7000),
-    ]));
-    loop.start();
-    return () => loop.stop();
-  }, []);
-
   return (
-    <View style={[dlh.root, { paddingTop: safeTop }]}>
-      <View style={{ height: 3, flexDirection: 'row' }}>
-        {[4,1,6,1,3,1,8,1,2].map((f,i) => (
-          <View key={i} style={{ flex: f, backgroundColor: [C.blue,C.blue+'20',C.cyan,C.cyan+'10',C.blue+'60',C.cyan+'08',C.green+'30',C.blue+'08',C.blue+'25'][i] }} />
-        ))}
-      </View>
-      <Animated.View pointerEvents="none" style={[dlh.shim, { transform: [{ translateX: shimA }] }]} />
-      <View style={dlh.body}>
-        <View style={{ flex: 1, gap: 5 }}>
-          <Text style={dlh.eye}>SETUP HQ · DOWNLOADS · Q&A · OPEN SOURCE</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
-            <View style={[dlh.iconBox, { borderColor: C.blue + '55', backgroundColor: C.blue + '10' }]}>
-              <MaterialCommunityIcons name="download-circle" size={20} color={C.blue} />
-            </View>
-            <Text style={dlh.title}>GET <Text style={{ color: C.blue }}>BUTLER</Text></Text>
+    <TabPageHeader
+      safeTop={safeTop}
+      accent={C.blue}
+      icon="download-circle"
+      iconLib="community"
+      eyebrow="SETUP HQ · DOWNLOADS · Q&A · OPEN SOURCE"
+      title={
+        <>
+          <Text style={{ color: '#FFF' }}>GET </Text>
+          <Text style={{ color: C.blue }}>BUTLER</Text>
+        </>
+      }
+      subtitle="free · open source · official downloads · v21.2.0"
+      showConn={false}
+      showSec={false}
+      extraPills={
+        <>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 20,
+            paddingHorizontal: 9, paddingVertical: 4, borderColor: C.green + '60', backgroundColor: C.green + '0C' }}>
+            <PulseDot color={C.green} size={5} />
+            <Text style={{ fontFamily: MONO, fontSize: 8.5, fontWeight: '900', color: C.green }}>OFFICIAL SOURCES</Text>
           </View>
-          <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginTop: 2 }}>
-            <View style={[dlh.pill, { borderColor: C.green + '60', backgroundColor: C.green + '0C' }]}>
-              <PulseDot color={C.green} size={5} />
-              <Text style={[dlh.pillTxt, { color: C.green }]}>OFFICIAL SOURCES</Text>
-            </View>
-            <View style={[dlh.pill, { borderColor: C.blue + '45', backgroundColor: C.blue + '08' }]}>
-              <Text style={[dlh.pillTxt, { color: C.blue }]}>FREE · OPEN SOURCE</Text>
-            </View>
-            <View style={[dlh.pill, { borderColor: C.cyan + '45', backgroundColor: C.cyan + '06' }]}>
-              <Text style={[dlh.pillTxt, { color: C.cyan }]}>Q&A INSIDE</Text>
-            </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 20,
+            paddingHorizontal: 9, paddingVertical: 4, borderColor: C.blue + '45', backgroundColor: C.blue + '08' }}>
+            <Text style={{ fontFamily: MONO, fontSize: 8.5, fontWeight: '900', color: C.blue }}>FREE · OPEN SOURCE</Text>
           </View>
+        </>
+      }
+      rightSlot={
+        <View style={{ alignItems: 'flex-end', gap: 4 }}>
+          <MaterialCommunityIcons name="shield-check" size={28} color={C.blue + '60'} />
+          <Text style={{ fontFamily: MONO, fontSize: 8, color: C.mid, letterSpacing: 1 }}>ZERO CLOUD</Text>
         </View>
-        <View style={{ alignItems: 'flex-end', gap: 5 }}>
-          <MaterialCommunityIcons name="shield-check" size={32} color={C.blue + '60'} />
-          <Text style={dlh.sub}>v21.2.0</Text>
-          <Text style={dlh.sub2}>ZERO CLOUD</Text>
-        </View>
-      </View>
-      <View style={{ height: 2, flexDirection: 'row' }}>
-        <View style={{ flex: 3, backgroundColor: C.blue + '30' }} />
-        <View style={{ width: 18, backgroundColor: C.blue }} />
-        <View style={{ flex: 2, backgroundColor: C.cyan + '18' }} />
-        <View style={{ width: 10, backgroundColor: C.cyan }} />
-        <View style={{ flex: 5, backgroundColor: C.green + '10' }} />
-      </View>
-    </View>
+      }
+    />
   );
 }
-const dlh = StyleSheet.create({
-  root:    { backgroundColor: C.surf, overflow: 'hidden' },
-  shim:    { position: 'absolute', top: 0, bottom: 0, width: 90, backgroundColor: 'rgba(74,158,255,0.05)', zIndex: 0 },
-  body:    { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: PAD, paddingTop: 13, paddingBottom: 13, zIndex: 1 },
-  eye:     { fontFamily: MONO, fontSize: 8, fontWeight: '700', color: C.blue + '60', letterSpacing: 1.5 },
-  iconBox: { width: 40, height: 40, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  title:   { fontSize: 28, fontWeight: '900', color: '#FFF', letterSpacing: -0.4 },
-  pill:    { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5 },
-  pillTxt: { fontFamily: MONO, fontSize: 9, fontWeight: '900', letterSpacing: 0.3 },
-  sub:     { fontFamily: MONO, fontSize: 10, color: C.blue, fontWeight: '900' },
-  sub2:    { fontFamily: MONO, fontSize: 8, color: C.mid, letterSpacing: 1 },
-});
 
 // ═══════════════════════════════════════════════════════════════
 // TRUST STRIP

@@ -16,6 +16,7 @@ import { haptics } from '@/services/haptics';
 import { TabSwipeOverlay } from '@/components/ui/TabSwipeOverlay';
 import { TabErrorBoundary } from '@/components/ui/TabErrorBoundary';
 import { COLOR, FONT, glow, SHADOW } from '@/constants/tokens';
+import { TabPageHeader } from '@/components/ui/TabPageHeader';
 import { serverConnection } from '@/services/serverConnection';
 import { autoConnectEngine } from '@/services/autoConnectEngine';
 import { saveButlerScript } from '@/services/butlerScripts';
@@ -77,53 +78,33 @@ function PulseDot({ color, size = 6 }: { color: string; size?: number }) {
 // ─── HEADER ───────────────────────────────────────────────────────
 function ForgeHeader({ safeTop, isConn, nodeCount, accent }: { safeTop: number; isConn: boolean; nodeCount: number; accent: string }) {
   return (
-    <View style={[fh.root, { paddingTop: safeTop }]}>
-      <View style={{ height: 3, flexDirection: 'row' }}>
-        {COLOR.stripe5.map((c, i) => <View key={i} style={{ flex: 1, backgroundColor: c }} />)}
-      </View>
-      <View style={fh.row}>
-        <View style={[fh.iconBox, { borderColor: COLOR.magenta + '50', backgroundColor: glow(COLOR.magenta, 8) }]}>
-          <MaterialCommunityIcons name="hammer-screwdriver" size={20} color={COLOR.magenta} />
+    <TabPageHeader
+      safeTop={safeTop}
+      accent={accent || COLOR.magenta}
+      icon="hammer-screwdriver"
+      iconLib="community"
+      eyebrow="VISUAL NODE BUILDER · DRAG & BUILD"
+      title={
+        <>
+          <Text style={{ color: accent || COLOR.magenta }}>{'{'}</Text>
+          <Text style={{ color: '#FFF' }}>SCRIPT</Text>
+          <Text style={{ color: COLOR.cyan }}>_FORGE</Text>
+          <Text style={{ color: accent || COLOR.magenta }}>{'}'}</Text>
+        </>
+      }
+      subtitle={`node pipeline · ${PALETTE.filter(n => n.type === 'TRIGGER').length}T / ${PALETTE.filter(n => n.type === 'ACTION').length}A / ${PALETTE.filter(n => n.type === 'OUTPUT').length}O`}
+      isConn={isConn}
+      connLabel="PC LIVE"
+      extraPills={nodeCount > 0 ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 20,
+          paddingHorizontal: 9, paddingVertical: 4,
+          borderColor: (accent || COLOR.magenta) + '40', backgroundColor: glow(accent || COLOR.magenta, 8) }}>
+          <Text style={{ fontFamily: MONO, fontSize: 8.5, fontWeight: '900', color: accent || COLOR.magenta }}>{nodeCount} NODES</Text>
         </View>
-        <View style={{ flex: 1 }}>
-          <Text style={fh.brand}>
-            <Text style={{ color: COLOR.magenta }}>{'{'}</Text>
-            <Text style={{ color: '#FFF' }}>SCRIPT</Text>
-            <Text style={{ color: COLOR.cyan }}>_FORGE</Text>
-            <Text style={{ color: COLOR.magenta }}>{'}'}</Text>
-          </Text>
-          <Text style={fh.sub}>
-            <Text style={{ color: COLOR.magenta + '55' }}>{'# '}</Text>
-            <Text style={{ color: COLOR.mid }}>node pipeline · {PALETTE.filter(n => n.type === 'TRIGGER').length}T / {PALETTE.filter(n => n.type === 'ACTION').length}A / {PALETTE.filter(n => n.type === 'OUTPUT').length}O</Text>
-          </Text>
-        </View>
-        <View style={[fh.pill, { borderColor: (isConn ? COLOR.green : COLOR.red) + '55', backgroundColor: (isConn ? COLOR.green : COLOR.red) + '0A' }]}>
-          <PulseDot color={isConn ? COLOR.green : COLOR.red} size={5} />
-          <Text style={[fh.pillTxt, { color: isConn ? COLOR.green : COLOR.red }]}>{isConn ? 'PC LIVE' : 'OFFLINE'}</Text>
-        </View>
-        {nodeCount > 0 && (
-          <View style={[fh.pill, { borderColor: COLOR.magenta + '40', backgroundColor: glow(COLOR.magenta, 8) }]}>
-            <Text style={[fh.pillTxt, { color: COLOR.magenta }]}>{nodeCount} NODES</Text>
-          </View>
-        )}
-      </View>
-      <View style={{ height: 1, flexDirection: 'row' }}>
-        <View style={{ flex: 1, backgroundColor: COLOR.magenta + '25' }} />
-        <View style={{ width: 10, backgroundColor: COLOR.magenta }} />
-        <View style={{ flex: 4, backgroundColor: COLOR.magenta + '10' }} />
-      </View>
-    </View>
+      ) : undefined}
+    />
   );
 }
-const fh = StyleSheet.create({
-  root:    { backgroundColor: '#020609', ...SHADOW.dark },
-  row:     { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: PAD, paddingTop: 10, paddingBottom: 7 },
-  iconBox: { width: 44, height: 44, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  brand:   { fontFamily: MONO, fontSize: 15, fontWeight: '900', letterSpacing: 0.3 },
-  sub:     { fontFamily: MONO, fontSize: 8.5, lineHeight: 13, marginTop: 2 },
-  pill:    { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 7, paddingHorizontal: 8, paddingVertical: 4 },
-  pillTxt: { fontFamily: MONO, fontSize: 8.5, fontWeight: '900' },
-});
 
 // ─── PALETTE CARD ─────────────────────────────────────────────────
 function PaletteCard({ node, onAdd, inCanvas }: { node: NodeDef; onAdd: (n: NodeDef) => void; inCanvas: boolean }) {

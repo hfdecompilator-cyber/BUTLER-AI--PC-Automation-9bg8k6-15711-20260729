@@ -20,6 +20,7 @@ import { haptics } from '@/services/haptics';
 import { TabErrorBoundary } from '@/components/ui/TabErrorBoundary';
 import { TabSwipeOverlay } from '@/components/ui/TabSwipeOverlay';
 import { COLOR, FONT, glow, SHADOW } from '@/constants/tokens';
+import { TabPageHeader, TabPageSubTab } from '@/components/ui/TabPageHeader';
 import { serverConnection } from '@/services/serverConnection';
 import { autoConnectEngine } from '@/services/autoConnectEngine';
 import { loadButlerScripts, deleteButlerScript, saveButlerScript, ButlerScript } from '@/services/butlerScripts';
@@ -282,118 +283,46 @@ interface ForgeHeaderProps {
 }
 
 function ForgeHeader({ safeTop, isConn, addr, mode, onModeChange, onAdd, accent }: ForgeHeaderProps) {
-  const scanA = useRef(new Animated.Value(-SW)).current;
-  const m = useRef(true);
-  useEffect(() => {
-    m.current = true;
-    const loop = Animated.loop(Animated.sequence([
-      Animated.timing(scanA, { toValue: SW * 2, duration: 3000, useNativeDriver: false }),
-      Animated.timing(scanA, { toValue: -SW, duration: 0, useNativeDriver: false }),
-      Animated.delay(6000),
-    ]));
-    loop.start();
-    return () => { m.current = false; loop.stop(); };
-  }, []);
-
-  const cc = isConn ? COLOR.green : COLOR.red;
-
-  const MODES = [
-    { id: 'scripts'   as const, icon: 'code',          lib: 'm' as const, label: 'SCRIPTS', color: accent           },
-    { id: 'library'   as const, icon: 'library-books',  lib: 'm' as const, label: 'LIBRARY', color: COLOR.magenta   },
-    { id: 'favorites' as const, icon: 'star',           lib: 'm' as const, label: 'SAVED',   color: COLOR.yellow    },
-    { id: 'schedule'  as const, icon: 'shield-lock',    lib: 'm' as const, label: 'SAFE',    color: '#00CCBB'       },
+  const MODES: TabPageSubTab[] = [
+    { id: 'scripts',   icon: 'code',          lib: 'material',   label: 'SCRIPTS', color: accent           },
+    { id: 'library',   icon: 'library-books',  lib: 'material',   label: 'LIBRARY', color: COLOR.magenta   },
+    { id: 'favorites', icon: 'star',           lib: 'material',   label: 'SAVED',   color: COLOR.yellow    },
+    { id: 'schedule',  icon: 'shield-lock',    lib: 'community',  label: 'SAFE',    color: '#00CCBB'       },
   ];
 
   return (
-    <View style={[fh.root, { paddingTop: safeTop }]}>
-      {/* Animated horizontal scanline */}
-      <Animated.View pointerEvents="none" style={[fh.scan, { transform: [{ translateX: scanA }] }]} />
-
-      {/* 5-stripe top */}
-      <View style={{ height: 3.5, flexDirection: 'row' }}>
-        {COLOR.stripe5.map((c, i) => <View key={i} style={{ flex: 1, backgroundColor: c }} />)}
-      </View>
-
-      {/* Brand row */}
-      <View style={fh.brandRow}>
-        {/* Left: icon + title */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 11, flex: 1 }}>
-          <View style={[fh.iconGlyph, { borderColor: accent + '55', backgroundColor: glow(accent, 8) }]}>
-            <HUDCorners color={accent + '70'} size={6} />
-            <MaterialCommunityIcons name="code-braces-box" size={20} color={accent} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={fh.brand} adjustsFontSizeToFit minimumFontScale={0.7}>
-              <Text style={{ color: accent }}>{'{'}</Text>
-              <Text style={{ color: '#FFF' }}>SCRIPT</Text>
-              <Text style={{ color: COLOR.green }}>_FORGE</Text>
-              <Text style={{ color: accent }}>{'}'}</Text>
-            </Text>
-            <Text style={fh.sub}>
-              <Text style={{ color: COLOR.green + '55' }}>{'# '}</Text>
-              <Text style={{ color: COLOR.mid }}>python · bash · ai writer · 250+ scripts</Text>
-            </Text>
-          </View>
-        </View>
-
-        {/* Right: connection + add */}
-        <View style={{ alignItems: 'flex-end', gap: 6 }}>
-          <View style={[fh.connPill, { borderColor: cc + '55', backgroundColor: cc + '0A' }]}>
-            <PulseDot color={cc} size={5} />
-            <Text style={[fh.connTxt, { color: cc }]} numberOfLines={1}>
-              {isConn ? (addr.split(':')[0] || 'LIVE') : 'OFFLINE'}
-            </Text>
-          </View>
-          <TouchableOpacity onPress={() => { haptics.heavy(); onAdd(); }} activeOpacity={0.85}
-            style={[fh.addFAB, { backgroundColor: accent }]}>
-            <MaterialIcons name="add" size={17} color="#000" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Mode selector row */}
-      <View style={fh.modeRow}>
-        {MODES.map(tab => {
-          const Icon = tab.lib === 'm' ? MaterialIcons : MaterialCommunityIcons;
-          const isActive = mode === tab.id;
-          return (
-            <TouchableOpacity key={tab.id} onPress={() => { haptics.selection(); onModeChange(tab.id); }} activeOpacity={0.8}
-              style={[fh.modeTab, isActive && { backgroundColor: glow(tab.color, 12), borderBottomColor: tab.color, borderBottomWidth: 3 }]}>
-              <Icon name={tab.icon as any} size={13} color={isActive ? tab.color : COLOR.dim} />
-              <Text style={[fh.modeLabel, { color: isActive ? tab.color : COLOR.dim }]}>{tab.label}</Text>
-              {isActive && <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: tab.color }} />}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      {/* Circuit trace bottom */}
-      <View style={{ height: 1, flexDirection: 'row' }}>
-        <View style={{ flex: 3, backgroundColor: accent + '22' }} />
-        <View style={{ width: 8,  backgroundColor: accent }} />
-        <View style={{ flex: 1,  backgroundColor: COLOR.green + '25' }} />
-        <View style={{ width: 4,  backgroundColor: COLOR.green }} />
-        <View style={{ flex: 4,  backgroundColor: accent + '10' }} />
-        <View style={{ width: 12, backgroundColor: COLOR.magenta }} />
-        <View style={{ flex: 2,  backgroundColor: COLOR.magenta + '15' }} />
-      </View>
-    </View>
+    <TabPageHeader
+      safeTop={safeTop}
+      accent={accent}
+      icon="code-braces-box"
+      iconLib="community"
+      eyebrow="SCRIPT FORGE · PYTHON · BASH"
+      title={
+        <>
+          <Text style={{ color: accent }}>{'{'}</Text>
+          <Text style={{ color: '#FFF' }}>SCRIPT</Text>
+          <Text style={{ color: COLOR.green }}>_FORGE</Text>
+          <Text style={{ color: accent }}>{'}'}</Text>
+        </>
+      }
+      subtitle="python · bash · ai writer · 250+ scripts"
+      isConn={isConn}
+      connLabel={addr.split(':')[0] || 'LIVE'}
+      rightSlot={
+        <TouchableOpacity
+          onPress={() => { haptics.heavy(); onAdd(); }}
+          activeOpacity={0.85}
+          style={{ width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: accent }}
+        >
+          <MaterialIcons name="add" size={18} color="#000" />
+        </TouchableOpacity>
+      }
+      subTabs={MODES}
+      activeSubTab={mode}
+      onSubTabChange={id => { haptics.selection(); onModeChange(id as any); }}
+    />
   );
 }
-const fh = StyleSheet.create({
-  root:      { backgroundColor: '#010407', overflow: 'hidden' },
-  scan:      { position: 'absolute', top: 0, bottom: 0, width: 140, backgroundColor: 'rgba(0,229,255,0.015)', zIndex: 0 },
-  brandRow:  { flexDirection: 'row', alignItems: 'center', paddingHorizontal: PAD, paddingTop: 11, paddingBottom: 9, zIndex: 1 },
-  iconGlyph: { width: 46, height: 46, borderRadius: 13, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative', overflow: 'hidden' },
-  brand:     { fontFamily: MONO, fontSize: 16, fontWeight: '900', letterSpacing: 0.3 },
-  sub:       { fontFamily: MONO, fontSize: 8.5, lineHeight: 13, marginTop: 2 },
-  connPill:  { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1.5, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 },
-  connTxt:   { fontFamily: MONO, fontSize: 8.5, fontWeight: '900', maxWidth: 80 },
-  addFAB:    { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  modeRow:   { flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'rgba(0,229,255,0.06)', backgroundColor: '#01060E' },
-  modeTab:   { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 10, borderBottomWidth: 3, borderBottomColor: 'transparent' },
-  modeLabel: { fontFamily: MONO, fontSize: 9.5, fontWeight: '900', letterSpacing: 0.5 },
-});
 
 // ─── SEARCH BAR ───────────────────────────────────────────────────
 function SearchBar({ value, onChange, count, accent }: { value: string; onChange: (v: string) => void; count: number; accent: string }) {

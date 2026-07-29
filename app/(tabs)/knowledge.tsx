@@ -33,6 +33,7 @@ import { haptics } from '@/services/haptics';
 import { TabSwipeOverlay } from '@/components/ui/TabSwipeOverlay';
 import { TabErrorBoundary } from '@/components/ui/TabErrorBoundary';
 import { COLOR, FONT, glow } from '@/constants/tokens';
+import { TabPageHeader, ClockSlot } from '@/components/ui/TabPageHeader';
 import { knowledgeAccumulator, CompressedKnowledge, ResearchSession } from '@/services/knowledgeAccumulator';
 import { kbOrganizerBot } from '@/services/kbOrganizerBot';
 import { sigmaNetCrawler, SIGMA_PYTHON_TARGETS, SigmaRelayResult } from '@/services/serverCrawler';
@@ -397,126 +398,56 @@ function Ticker() {
 function KBHeader({ safeTop, isConn, findings, onRefresh }: {
   safeTop: number; isConn: boolean; findings: number; onRefresh: () => void;
 }) {
-  const shimA = useRef(new Animated.Value(-SW)).current;
-  const [time, setTime] = useState('');
-  const [secs, setSecs] = useState('');
-  const m = useRef(true);
-
-  useEffect(() => {
-    m.current = true;
-    const upd = () => {
-      const n = new Date();
-      setTime(`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`);
-      setSecs(String(n.getSeconds()).padStart(2,'0'));
-    };
-    upd(); const t = setInterval(upd, 1000);
-    return () => { m.current = false; clearInterval(t); };
-  }, []);
-
-  useEffect(() => {
-    const loop = Animated.loop(Animated.sequence([
-      Animated.timing(shimA, { toValue: SW * 1.5, duration: 2000, useNativeDriver: true }),
-      Animated.timing(shimA, { toValue: -SW,      duration: 0,    useNativeDriver: true }),
-      Animated.delay(7000),
-    ]));
-    loop.start(); return () => loop.stop();
-  }, []);
-
-  const cc = isConn ? GREEN : RED;
-
   return (
-    <View style={[khdr.root, { paddingTop: safeTop }]}>
-      {/* Top 5-stripe */}
-      <View style={{ height: 3.5, flexDirection: 'row' }}>
-        {[AMBER, PURPLE, CYAN, GREEN, PINK].map((c, i) => <View key={i} style={{ flex: 1, backgroundColor: c }} />)}
-      </View>
-      {/* Shimmer */}
-      <Animated.View pointerEvents="none" style={[khdr.shimmer, { transform: [{ translateX: shimA }] }]} />
-
-      {/* Main header row */}
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 11, paddingHorizontal: PAD, paddingTop: 12, paddingBottom: 10, zIndex: 1 }}>
-        {/* Left */}
-        <View style={{ flex: 1, gap: 6 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={{ fontFamily: MONO, fontSize: 7.5, fontWeight: '700', color: AMBER + '60', letterSpacing: 2 }}>
-              NEURAL INDEX · SIGMA-NET · OMEGA-LOOP
-            </Text>
+    <TabPageHeader
+      safeTop={safeTop}
+      accent={AMBER}
+      icon="brain"
+      iconLib="community"
+      eyebrow="NEURAL INDEX · SIGMA-NET · OMEGA-LOOP"
+      title={
+        <>
+          <Text style={{ color: AMBER }}>{'['}</Text>
+          <Text style={{ color: '#FFF' }}>NEXUS</Text>
+          <Text style={{ color: CYAN }}>_KB</Text>
+          <Text style={{ color: AMBER }}>{']'}</Text>
+        </>
+      }
+      subtitle="knowledge base · AI research · sigma-net"
+      isConn={isConn}
+      connLabel="RELAY ON"
+      offLabel="LOCAL"
+      showSec={false}
+      extraPills={
+        <>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 20,
+            paddingHorizontal: 9, paddingVertical: 4, borderColor: AMBER + '40', backgroundColor: AMBER + '08' }}>
+            <MaterialCommunityIcons name="database" size={9} color={AMBER} />
+            <Text style={{ fontFamily: MONO, fontSize: 8.5, fontWeight: '900', color: AMBER }}>{findings} FACTS</Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <View style={[khdr.logoBox, { borderColor: AMBER + '55', backgroundColor: AMBER + '10' }]}>
-              <HUDCorners color={AMBER + '50'} size={6} />
-              <MaterialCommunityIcons name="brain" size={20} color={AMBER} />
-              <View style={{ position: 'absolute', top: -2, right: -2 }}>
-                <PulseDot color={AMBER} size={5} />
-              </View>
-            </View>
-            <Text style={khdr.brand}>
-              <Text style={{ color: AMBER }}>{'['}</Text>
-              <Text style={{ color: '#FFF' }}>NEXUS</Text>
-              <Text style={{ color: CYAN }}>_KB</Text>
-              <Text style={{ color: AMBER }}>{']'}</Text>
-            </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 20,
+            paddingHorizontal: 9, paddingVertical: 4, borderColor: PURPLE + '40', backgroundColor: PURPLE + '08' }}>
+            <MaterialCommunityIcons name="shield-check" size={9} color={PURPLE} />
+            <Text style={{ fontFamily: MONO, fontSize: 8.5, fontWeight: '900', color: PURPLE }}>AES-256</Text>
           </View>
-          {/* Pill row */}
-          <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
-            <View style={[khdr.pill, { borderColor: cc + '55', backgroundColor: cc + '0A' }]}>
-              <PulseDot color={cc} size={5} />
-              <Text style={[khdr.pillTxt, { color: cc }]}>{isConn ? 'RELAY ON' : 'LOCAL'}</Text>
-            </View>
-            <View style={[khdr.pill, { borderColor: AMBER + '40', backgroundColor: AMBER + '08' }]}>
-              <MaterialCommunityIcons name="database" size={9} color={AMBER} />
-              <Text style={[khdr.pillTxt, { color: AMBER }]}>{findings} FACTS</Text>
-            </View>
-            <View style={[khdr.pill, { borderColor: PURPLE + '40', backgroundColor: PURPLE + '08' }]}>
-              <MaterialCommunityIcons name="radar" size={9} color={PURPLE} />
-              <Text style={[khdr.pillTxt, { color: PURPLE }]}>AES-256</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Right: clock + refresh */}
+        </>
+      }
+      rightSlot={
         <View style={{ alignItems: 'flex-end', gap: 6 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 2 }}>
-            <Text style={{ fontFamily: MONO, fontSize: 26, fontWeight: '900', color: TEXT, letterSpacing: 1 }}>{time}</Text>
-            <Text style={{ fontFamily: MONO, fontSize: 16, fontWeight: '900', color: AMBER, letterSpacing: 1 }}>{secs}</Text>
-          </View>
-          <Text style={{ fontFamily: MONO, fontSize: 8.5, color: MID, letterSpacing: 1, fontWeight: '700' }}>KB · INDEXED</Text>
-          <TouchableOpacity onPress={() => { haptics.light(); onRefresh(); }}
-            style={[khdr.refreshBtn, { borderColor: AMBER + '45', backgroundColor: AMBER + '0A' }]}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <ClockSlot accent={AMBER} subLabel="KB · INDEXED" />
+          <TouchableOpacity
+            onPress={() => { haptics.light(); onRefresh(); }}
+            style={{ width: 32, height: 32, borderRadius: 9, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center',
+              borderColor: AMBER + '45', backgroundColor: AMBER + '0A' }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
             <MaterialIcons name="refresh" size={15} color={AMBER} />
           </TouchableOpacity>
         </View>
-      </View>
-
-      {/* Ticker row */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: PAD, paddingBottom: 9, zIndex: 1 }}>
-        <MaterialCommunityIcons name="radar" size={9} color={AMBER + '80'} />
-        <Ticker />
-      </View>
-
-      {/* Circuit trace bottom */}
-      <View style={{ height: 2, flexDirection: 'row' }}>
-        <View style={{ flex: 4, backgroundColor: AMBER + '20' }} />
-        <View style={{ width: 12, backgroundColor: AMBER }} />
-        <View style={{ flex: 2, backgroundColor: PURPLE + '15' }} />
-        <View style={{ width: 6,  backgroundColor: PURPLE }} />
-        <View style={{ flex: 5, backgroundColor: CYAN + '08' }} />
-        <View style={{ width: 10, backgroundColor: CYAN }} />
-        <View style={{ flex: 3, backgroundColor: CYAN + '10' }} />
-      </View>
-    </View>
+      }
+    />
   );
 }
-const khdr = StyleSheet.create({
-  root:       { backgroundColor: '#020609', overflow: 'hidden' },
-  shimmer:    { position: 'absolute', top: 0, bottom: 0, width: 90, backgroundColor: 'rgba(255,176,32,0.04)', zIndex: 0 },
-  logoBox:    { width: 44, height: 44, borderRadius: 13, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative', overflow: 'hidden' },
-  brand:      { fontFamily: MONO, fontSize: 20, fontWeight: '900', letterSpacing: 0.3 },
-  pill:       { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1.5, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 },
-  pillTxt:    { fontFamily: MONO, fontSize: 8.5, fontWeight: '900' },
-  refreshBtn: { width: 32, height: 32, borderRadius: 9, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-});
 
 // ─── TAB SELECTOR — full-width, no scroll ─────────────────────────
 const TABS: { key: TabKey; label: string; icon: string; lib: 'material' | 'community'; color: string }[] = [

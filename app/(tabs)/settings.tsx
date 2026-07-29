@@ -33,6 +33,7 @@ import { TabSwipeOverlay } from '@/components/ui/TabSwipeOverlay';
 import { logger } from '@/utils/logger';
 import { serverConnection } from '@/services/serverConnection';
 import { autoErrorLogger } from '@/services/autoErrorLogger';
+import { TabPageHeader, ClockSlot } from '@/components/ui/TabPageHeader';
 
 const { width: SW } = Dimensions.get('window');
 const MONO: any = Platform.OS === 'ios' ? 'Menlo-Bold' : 'monospace';
@@ -263,91 +264,26 @@ const pb = StyleSheet.create({
 
 // ─── HEADER ──────────────────────────────────────────────────────
 function CfgHeader({ safeTop, isConn }: { safeTop: number; isConn: boolean }) {
-  const [time, setTime] = useState('');
-  const [secs, setSecs] = useState('');
-  const shimA = useRef(new Animated.Value(-SW)).current;
-
-  useEffect(() => {
-    const upd = () => {
-      const n = new Date();
-      setTime(`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`);
-      setSecs(String(n.getSeconds()).padStart(2,'0'));
-    };
-    upd(); const t = setInterval(upd, 1000); return () => clearInterval(t);
-  }, []);
-
-  useEffect(() => {
-    const loop = Animated.loop(Animated.sequence([
-      Animated.timing(shimA, { toValue: SW * 1.5, duration: 2200, useNativeDriver: true }),
-      Animated.timing(shimA, { toValue: -SW,       duration: 0,    useNativeDriver: true }),
-      Animated.delay(7800),
-    ]));
-    loop.start();
-    return () => loop.stop();
-  }, []);
-
-  const cc = isConn ? C.green : C.amber;
   return (
-    <View style={[cfh.root, { paddingTop: safeTop }]}>
-      <View style={{ height: 3, backgroundColor: C.amber }} />
-      <Animated.View pointerEvents="none" style={[cfh.shimmer, { transform: [{ translateX: shimA }] }]} />
-      <View style={cfh.body}>
-        <View style={{ flex: 1, gap: 6 }}>
-          <Text style={cfh.eyebrow}>CONFIGURATION CENTER · SETTINGS</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <View style={[cfh.logoBox, { borderColor: C.amber + '55', backgroundColor: C.amber + '10' }]}>
-              <MaterialCommunityIcons name="tune-variant" size={20} color={C.amber} />
-            </View>
-            <Text style={cfh.brand}>BUTLER <Text style={{ color: C.amber }}>CFG</Text></Text>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 7, marginTop: 2 }}>
-            <View style={[cfh.pill, { borderColor: cc + '65', backgroundColor: cc + '0D' }]}>
-              <PulseDot color={cc} size={5} />
-              <Text style={[cfh.pillTxt, { color: cc }]}>{isConn ? 'PC ONLINE' : 'OFFLINE'}</Text>
-            </View>
-            <View style={[cfh.pill, { borderColor: C.amber + '40', backgroundColor: C.amber + '08' }]}>
-              <MaterialCommunityIcons name="shield-check" size={10} color={C.amber} />
-              <Text style={[cfh.pillTxt, { color: C.amber }]}>AES-256</Text>
-            </View>
-          </View>
-        </View>
-        <View style={{ alignItems: 'flex-end', gap: 4 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 2 }}>
-            <Text style={cfh.clock}>{time}</Text>
-            <Text style={[cfh.secs, { color: C.amber }]}>{secs}</Text>
-          </View>
-          <Text style={cfh.clockSub}>LOCAL · SECURE</Text>
-          <View style={{ borderWidth: 1, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3,
-            borderColor: C.amber + '40', backgroundColor: C.amber + '0A' }}>
-            <Text style={{ fontFamily: MONO, fontSize: 9, fontWeight: '900', color: C.amber }}>v8.0.0</Text>
-          </View>
-        </View>
-      </View>
-      <View style={{ height: 2, flexDirection: 'row' }}>
-        <View style={{ flex: 4, backgroundColor: C.amber + '18' }} />
-        <View style={{ width: 14, backgroundColor: C.amber }} />
-        <View style={{ flex: 2, backgroundColor: C.green + '14' }} />
-        <View style={{ width: 8,  backgroundColor: C.green }} />
-        <View style={{ flex: 6, backgroundColor: C.cyan + '08' }} />
-        <View style={{ width: 10, backgroundColor: C.cyan }} />
-        <View style={{ flex: 3, backgroundColor: C.cyan + '10' }} />
-      </View>
-    </View>
+    <TabPageHeader
+      safeTop={safeTop}
+      accent={C.amber}
+      icon="tune-variant"
+      iconLib="community"
+      eyebrow="CONFIGURATION CENTER · SETTINGS"
+      title={
+        <>
+          <Text style={{ color: '#FFF' }}>BUTLER </Text>
+          <Text style={{ color: C.amber }}>CFG</Text>
+        </>
+      }
+      subtitle="app settings · preferences · v8.0.0"
+      isConn={isConn}
+      connLabel="PC ONLINE"
+      rightSlot={<ClockSlot accent={C.amber} subLabel="LOCAL · SECURE" />}
+    />
   );
 }
-const cfh = StyleSheet.create({
-  root:    { backgroundColor: C.surf, overflow: 'hidden' },
-  shimmer: { position: 'absolute', top: 0, bottom: 0, width: 90, backgroundColor: 'rgba(255,176,32,0.04)', zIndex: 0 },
-  body:    { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: PAD, paddingTop: 13, paddingBottom: 13, zIndex: 1 },
-  eyebrow: { fontFamily: MONO, fontSize: 8, fontWeight: '700', color: C.amber + '60', letterSpacing: 2 },
-  logoBox: { width: 40, height: 40, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  brand:   { fontSize: 26, fontWeight: '900', color: '#FFF', letterSpacing: -0.5 },
-  pill:    { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5 },
-  pillTxt: { fontFamily: MONO, fontSize: 9, fontWeight: '900', letterSpacing: 0.3 },
-  clock:   { fontFamily: MONO, fontSize: 28, fontWeight: '900', color: C.text, letterSpacing: 1 },
-  secs:    { fontFamily: MONO, fontSize: 17, fontWeight: '900', letterSpacing: 1 },
-  clockSub:{ fontFamily: MONO, fontSize: 8, color: C.mid, letterSpacing: 1, fontWeight: '700' },
-});
 
 // ─── TUTORIAL BANNER ─────────────────────────────────────────────
 function TutorialBanner({ onReplay }: { onReplay: () => void }) {

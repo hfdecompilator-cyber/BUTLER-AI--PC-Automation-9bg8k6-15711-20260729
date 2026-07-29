@@ -15,6 +15,7 @@ import { haptics } from '@/services/haptics';
 import { TabErrorBoundary } from '@/components/ui/TabErrorBoundary';
 import { TabSwipeOverlay } from '@/components/ui/TabSwipeOverlay';
 import { COLOR, FONT, glow, SHADOW } from '@/constants/tokens';
+import { TabPageHeader, TabPageSubTab } from '@/components/ui/TabPageHeader';
 import {
   useCosmetic, PACK_THEMES, TIER_CONFIG,
   type AppTheme, type TierId,
@@ -51,54 +52,33 @@ function PulseDot({ color, size = 6 }: { color: string; size?: number }) {
 
 // ─── HEADER ───────────────────────────────────────────────────────
 function SkinsHeader({ safeTop, activeTab, onTabChange, accent }: { safeTop: number; activeTab: TabId; onTabChange: (t: TabId) => void; accent: string }) {
+  const subTabs: TabPageSubTab[] = TABS.map(t => ({
+    id: t.id, label: t.label, icon: t.icon, lib: 'community' as const, color: t.color,
+  }));
   return (
-    <View style={[skh.root, { paddingTop: safeTop }]}>
-      <View style={{ height: 3, flexDirection: 'row' }}>
-        {COLOR.stripe5.map((c, i) => <View key={i} style={{ flex: 1, backgroundColor: c }} />)}
-      </View>
-      <View style={skh.row}>
-        <View style={[skh.iconBox, { borderColor: COLOR.magenta + '50', backgroundColor: glow(COLOR.magenta, 8) }]}>
-          <MaterialCommunityIcons name="palette-swatch" size={20} color={COLOR.magenta} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={skh.brand}>
-            <Text style={{ color: COLOR.magenta }}>{'['}</Text>
-            <Text style={{ color: '#FFF' }}>SKINS</Text>
-            <Text style={{ color: COLOR.amber }}>_FX</Text>
-            <Text style={{ color: COLOR.magenta }}>{']'}</Text>
-          </Text>
-          <Text style={skh.sub}>
-            <Text style={{ color: COLOR.magenta + '55' }}>{'# '}</Text>
-            <Text style={{ color: COLOR.mid }}>{Object.keys(PACK_THEMES).length} themes · 6 FX slots · support</Text>
-          </Text>
-        </View>
-      </View>
-      {/* Mode bar */}
-      <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: COLOR.magenta + '18' }}>
-        {TABS.map(tab => {
-          const isActive = tab.id === activeTab;
-          const Icon = MaterialCommunityIcons;
-          return (
-            <TouchableOpacity key={tab.id} onPress={() => { haptics.selection(); onTabChange(tab.id); }} activeOpacity={0.8}
-              style={[skh.tab, isActive && { backgroundColor: glow(tab.color, 10), borderBottomColor: tab.color }]}>
-              <Icon name={tab.icon as any} size={12} color={isActive ? tab.color : COLOR.dim} />
-              <Text style={[skh.tabTxt, { color: isActive ? tab.color : COLOR.dim }]}>{tab.label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
+    <TabPageHeader
+      safeTop={safeTop}
+      accent={accent || COLOR.magenta}
+      icon="palette-swatch"
+      iconLib="community"
+      eyebrow="VISUAL THEMES · FX SLOTS · CUSTOMIZATION"
+      title={
+        <>
+          <Text style={{ color: accent || COLOR.magenta }}>{'['}</Text>
+          <Text style={{ color: '#FFF' }}>SKINS</Text>
+          <Text style={{ color: COLOR.amber }}>_FX</Text>
+          <Text style={{ color: accent || COLOR.magenta }}>{']'}</Text>
+        </>
+      }
+      subtitle={`${Object.keys(PACK_THEMES).length} themes · 6 FX slots · support`}
+      showConn={false}
+      showSec={false}
+      subTabs={subTabs}
+      activeSubTab={activeTab}
+      onSubTabChange={id => { haptics.selection(); onTabChange(id as TabId); }}
+    />
   );
 }
-const skh = StyleSheet.create({
-  root:    { backgroundColor: '#020609', ...SHADOW.dark },
-  row:     { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: PAD, paddingTop: 10, paddingBottom: 7 },
-  iconBox: { width: 44, height: 44, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  brand:   { fontFamily: MONO, fontSize: 15, fontWeight: '900', letterSpacing: 0.3 },
-  sub:     { fontFamily: MONO, fontSize: 8.5, lineHeight: 13, marginTop: 2 },
-  tab:     { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 10, borderBottomWidth: 3, borderBottomColor: 'transparent' },
-  tabTxt:  { fontFamily: MONO, fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
-});
 
 // ─── LIVE CHAT PREVIEW ────────────────────────────────────────────
 function ChatPreview({ theme }: { theme: AppTheme }) {
