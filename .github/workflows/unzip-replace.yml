@@ -1,0 +1,42 @@
+name: Unzip and Replace Repo Contents
+
+on:
+  push:
+    paths:
+      - "*.zip"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  unzip-and-replace:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Locate zip
+        id: findzip
+        run: |
+          ZIP=$(ls *.zip 2>/dev/null | head -n1)
+          [ -z "$ZIP" ] && exit 1
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+      - name: Extract
+        run: |
+          rm -rf /tmp/x && mkdir -p /tmp/x
+          unzip -q -o "${{ steps.findzip.outputs.zip }}" -d /tmp/x
+      - name: Replace repo contents
+        run: |
+          shopt -s dotglob nullglob
+          e=(/tmp/x/*); SRC=/tmp/x
+          [ ${#e[@]} -eq 1 ] && [ -d "${e[0]}" ] && SRC="${e[0]}"
+          for i in ./*; do b=$(basename "$i"); [ "$b" != ".git" ] && [ "$b" != ".github" ] && rm -rf "$i"; done
+          cp -a "$SRC"/. .
+          rm -f "${{ steps.findzip.outputs.zip }}"
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "Replace repo contents from zip" && git push
