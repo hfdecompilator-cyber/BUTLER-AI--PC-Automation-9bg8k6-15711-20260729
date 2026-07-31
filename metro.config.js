@@ -12,9 +12,7 @@ const config = getDefaultConfig(__dirname);
 // v5.12.0 — CORE tab (nexushome) removed from tab bar; butler is now the default home screen
 // All home/core/nexushome navigations redirect to butler
 // Cache busted on every save so GitHub pushes appear instantly
-// Bump this string manually when you need a forced full rebuild.
-// Do NOT use Date.now() here — it makes every save cold-rebuild (very slow).
-config.cacheVersion = 'butler-ai-v6.1.0';
+config.cacheVersion = 'butler-ai-v7.0.0-nexus-butler-chat-' + Date.now();
 
 // ── COPYRIGHT NOTICE SERIALIZER ───────────────────────────────────────
 // Prepends a copyright banner to the COMPILED bundle. This banner
